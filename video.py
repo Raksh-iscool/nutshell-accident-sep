@@ -50,7 +50,7 @@ def _display_detected_frames(conf, model, st_frame, image, is_display_tracking=N
         if de==0:
             cv2.imwrite('accident_frame.jpg', image)
             st.subheader(":red[Accident Detected]")
-            t = threading.Thread(target=image_to_text.generate_and_send_report, args=('accident_frame.jpg', ['a.thirumurugan1211@gmail.com']))
+            t = threading.Thread(target=image_to_text.generate_and_send_report, args=('accident_frame.jpg', ['a.thirumurugan1211@gmail.com','venkatesan.m2022@vitstudent.ac.in','rakshana3110@gmail.com','raveena.v2023@vitstudent.ac.in']))
             t.start()
             de = 1
 
