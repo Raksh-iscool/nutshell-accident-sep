@@ -55,7 +55,33 @@ def _display_detected_frames(conf, model, st_frame, image, is_display_tracking=N
             de = 1
 
     
-    
+def play_rtsp_stream(soruce_rstp, conf, model):
+    #source_rtsp = st.sidebar.text_input("Enter link")
+    #st.sidebar.caption('Example URL: rtsp://admin:12345@192.168.1.210:554/Streaming/Channels/101')
+    is_display_tracker, tracker = display_tracker_options()
+    if 1:
+        try:
+            vid_cap = cv2.VideoCapture(soruce_rstp)
+            st_frame = st.empty()
+            while (vid_cap.isOpened()):
+                success, image = vid_cap.read()
+                if success:
+                    _display_detected_frames(conf,
+                                             model,
+                                             st_frame,
+                                             image,
+                                             is_display_tracker,
+                                             tracker
+                                             )
+                else:
+                    vid_cap.release()
+                    # vid_cap = cv2.VideoCapture(source_rtsp)
+                    # time.sleep(0.1)
+                    # continue
+                    break
+        except Exception as e:
+            vid_cap.release()
+            st.sidebar.error( str(e)) 
     
 
 def play_stored_video(video, conf, model):
@@ -106,24 +132,29 @@ def play_stored_video(video, conf, model):
 def main():
     global de
     de = 0
-    st.sidebar.title("Accident Detection (Upload Video to Detect the Accident)")
-    source_vid = st.sidebar.file_uploader("Upload video here",type="mp4")
-    if source_vid:
-        #print(source_vid.name)
-        with open(("files\{source_vid.name}"),"wb") as f:
-            f.write(source_vid.getbuffer())
+    st.sidebar.title("Accident Detection")
+    source_type = st.sidebar.radio("Choose source type", ('Upload Video', 'RTSP Stream'))
 
-        path = f"{source_vid.name}"
-
-        tfile = tempfile.NamedTemporaryFile(delete=False)
-        tfile.write(source_vid.read())
-
+    if source_type == 'Upload Video':
+        source_vid = st.sidebar.file_uploader("Upload video here", type="mp4")
+        if source_vid:
+            with open(f"files/{source_vid.name}", "wb") as f:
+                f.write(source_vid.getbuffer())
+            tfile = tempfile.NamedTemporaryFile(delete=False)
+            tfile.write(source_vid.read())
+            source = tfile.name
+            detect = st.sidebar.button("Submit")
+            model = YOLO("best.pt")
+            if detect and source:        
+                play_stored_video(source, 0.5, model)
+    elif source_type == 'RTSP Stream':
+        source = st.sidebar.text_input("Enter RTSP URL here")
         detect = st.sidebar.button("Submit")
-        #is_display_tracker, tracker = display_tracker_options()
-        #print(path)
-        model = YOLO("best.pt")
-        if detect:        
-            play_stored_video(tfile.name,0.5,model)
+        if detect and source:
+            model = YOLO("best.pt")
+            play_rtsp_stream(source,0.5, model)
+
+    
 
         # if r > 0:
         #     st.subheader(":red[Accident Detected]")
